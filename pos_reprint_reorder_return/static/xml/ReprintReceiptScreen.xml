@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ReprintReceiptScreenCopy" owl="1">
+        <div class="receipt-screen screen">
+            <div class="screen-content">
+                <div class="top-content">
+                    <span class="button back" t-on-click="confirm">
+                        <i class="fa fa-angle-double-left"></i>
+                        <span> </span>
+                        <span>Back</span>
+                    </span>
+                </div>
+                <div class="centered-content">
+                    <div class="button print" t-on-click="tryReprint">
+                        <i class="fa fa-print"></i> Print Receipt
+                    </div>
+                    <div class="pos-receipt-container">
+                    	<div class="pos-receipt">
+                    		<t t-if="env.pos.db.receipt.company.logo">
+				                <img class="pos-receipt-logo" t-att-src="env.pos.db.receipt.company.logo"
+					alt="Logo" />
+				                <br />
+				            </t>
+				            <t t-if="!env.pos.db.receipt.company.logo">
+				                <h2 class="pos-receipt-center-align">
+				                    <t t-esc="env.pos.db.receipt.company.name" />
+				                </h2>
+				                <br />
+				            </t>
+				            <div class="pos-receipt-contact">
+				                <t t-if="env.pos.db.receipt.company.contact_address">
+				                    <div><t t-esc="env.pos.db.receipt.company.contact_address" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.company.phone">
+				                    <div>Tel:<t t-esc="env.pos.db.receipt.company.phone" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.company.vat">
+				                    <div><t t-esc="env.pos.db.receipt.company.vat_label" />:<t
+					t-esc="env.pos.db.receipt.company.vat" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.company.email">
+				                    <div><t t-esc="env.pos.db.receipt.company.email" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.company.website">
+				                    <div><t t-esc="env.pos.db.receipt.company.website" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.header_html">
+				                    <t t-raw="env.pos.db.receipt.header_html" />
+				                </t>
+				                <t t-if="!env.pos.db.receipt.header_html and env.pos.db.receipt.header">
+				                    <div><t t-esc="env.pos.db.receipt.header" /></div>
+				                </t>
+				                <t t-if="env.pos.db.receipt.curr_user">
+				                    <div class="cashier">
+				                        <div>--------------------------------</div>
+				                        <div>Served by <t t-esc="env.pos.db.receipt.curr_user" /></div>
+				                    </div>
+				                </t>
+				            </div>
+           		 			<br /><br />
+           		 			<t t-if="env.pos.db.order.partner_id and env.pos.company.country.code == 'IN'">
+	           		 			<t t-if="env.pos.db.order.partner_id">
+					                <div class="pos-receipt-center-align">
+					                    <div><t t-esc="env.pos.db.order.partner_id" /></div>
+					                    <t t-if="env.pos.db.order.client_phone">
+					                        <div>
+					                            <span>Phone: </span>
+					                            <t t-esc="env.pos.db.order.client_phone" />
+					                        </div>
+					                    </t>
+					                    <br />
+					                </div>
+					            </t>
+				            </t>
+           		 			<!-- Orderlines -->
+
+				            <div class="orderlines">
+				                	<table class='receipt-orderlines' width='100%'>
+						                <colgroup>
+						                    <col width='60%' />
+						                    <col width='40%' />
+						                </colgroup>
+						                <t t-foreach="env.pos.db.orderlines" t-as="line" t-key="line.id">
+							                <tr style="font-size: 15px !important;">
+							                    <td class="pos-receipt-left-align">
+							                        <t t-esc="line.product_id"/>
+							                         
+							                    </td>
+							                    
+							                    <td class="pos-receipt-right-align">
+							                        <t t-if="env.pos.config.iface_tax_included === 'subtotal'">
+						                    			<t t-esc="env.pos.format_currency_no_symbol(line.price_subtotal)"/>	
+						                    		</t>
+						                    		<t t-else="">
+						                    			<t t-esc="env.pos.format_currency_no_symbol(line.price_subtotal_incl)"/>
+						                    		</t>
+							                    </td>
+							                    
+							                </tr>
+							                <tr t-if="line.discount !== 0" style="font-size: 15px !important;">
+							                	<td>
+							                		<div class="pos-receipt-left-padding">
+						                            	<t t-esc="line.price_unit"/>
+						                            </div>
+						                            <div class="pos-receipt-left-padding" style="color: gray;font-style: italic;font-size: 15px;">
+											                With a <t t-esc="line.discount" />% discount
+										            </div>
+							                	</td>
+							                	<td></td>
+							                </tr>
+						                </t>
+						                <t t-if="env.pos.config.iface_tax_included === 'subtotal' and env.pos.db.product_taxes_length">
+		                                    <tr><td></td><td class="pos-receipt-right-align">--------</td></tr>
+							                <tr>
+							                	<td>Subtotal</td>
+							                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency(env.pos.db.order.amount_total-env.pos.db.order.amount_tax)" /></td>
+							                </tr>
+							                <t t-foreach="env.pos.db.product_taxes" t-as="tax" t-key="tax.name">
+							                	<tr>
+								                	<td><t t-esc="tax.name" /></td>
+								                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency_no_symbol(tax.amount)" /></td>
+								                </tr>
+							                </t>
+		                                </t>
+						                
+						                <tr><td></td><td class="pos-receipt-right-align">--------</td></tr>
+						                <tr class="pos-receipt-amount">
+						                	<td>TOTAL</td>
+						                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency(env.pos.db.order.amount_total)" /></td>
+						                </tr>
+						                <br></br>
+						                <t t-foreach="env.pos.db.paymentlines" t-as="line" t-key="line.cid">
+							                <tr class="pos-receipt-amount">
+							                	<td><t t-esc="line.name" /></td>
+							                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency_no_symbol(line.amount)" /></td>
+							                </tr>
+							            </t>
+							            <br></br>
+						                <tr class="pos-receipt-amount receipt-change">
+						                	<td>CHANGE</td>
+						                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency(env.pos.db.change)" /></td>
+						                </tr>
+						                <br></br>
+						                <t t-set="total_discount" t-value="0" />
+						                <t t-foreach="env.pos.db.orderlines" t-as="line">
+						                	<t t-if="line.discount">
+						                		<t t-set="total_discount" t-value="total_discount+((line.price_unit*line.qty)-line.price_subtotal)" />
+						                	</t>
+						                </t>
+						                <t t-if="total_discount">
+							                <tr>
+							                    <td>Discounts</td>
+							                    <td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency(total_discount)" /></td>
+							                </tr>
+							            </t>
+							            <br></br>
+						                <t t-if="env.pos.config.iface_tax_included === 'total'">
+							                <t t-foreach="env.pos.db.product_taxes" t-as="tax" t-key="tax.name">
+							                	<tr>
+								                	<td><t t-esc="tax.name" /></td>
+								                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency_no_symbol(tax.amount)" /></td>
+								                </tr>
+							                </t>
+							                <tr>
+							                	<td>Total Taxes</td>
+							                	<td class="pos-receipt-right-align"><t t-esc="env.pos.format_currency(env.pos.db.order.amount_tax)" /></td>
+							                </tr>
+							                
+		                                </t>
+						            </table>   
+				            </div>
+	            			
+			                <div class="before-footer" />
+	
+				            <!-- Footer -->
+				            <div t-if="env.pos.db.receipt.footer_html"  class="pos-receipt-center-align">
+				                <t t-raw="env.pos.db.receipt.footer_html" />
+				            </div>
+				
+				            <div t-if="!env.pos.db.receipt.footer_html and env.pos.db.receipt.footer"  class="pos-receipt-center-align" style="white-space:pre-line">
+				                <br/>
+				                <t t-esc="env.pos.db.receipt.footer" />
+				                <br/>
+				                <br/>
+				            </div>
+				
+				            <br/>
+				            <div class="pos-receipt-order-data">
+				                <div><t t-esc="env.pos.db.order.pos_reference" /></div>
+				                <div><t t-esc="env.pos.db.receipt.date.localestring" /></div>
+				            </div>
+                   		 </div> <!-- End of div pos-receipt -->
+                    </div> <!-- End of div pos-receipt-container -->
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
