@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates id="pos_stock_location_template" inherit_id="point_of_sale.template" xml:space="preserve">
+    
+	<t t-name="PosOrdersButton" name="Pos Orders Widget" owl="1">
+	    <div class="control-button button" id="pos_display_orders" style="background-color: #6ec89b; color: #fff;" t-on-click="trigger('click-pos-orders')">
+	        <i class="fa fa-bank"></i> Orders 
+	    </div>
+   	</t>
+   	<t t-name="ProductScreen" t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('pads')]/div[hasclass('control-buttons')]" position="inside">
+	        <t t-if="env.pos.config.session_limit_conf">
+	        	<PosOrdersButton />
+	        </t>
+        </xpath>
+    </t>    
+    <t t-name="OrderListScreenWidget" owl="1">
+        <div class="clientlist-screen screen">
+            <div class="screen-content">
+                <div class="top-content">
+                    <div class='button back' t-on-click="back">
+                        <i class='fa fa-angle-double-left'></i>
+                        Cancel
+                    </div>
+                    
+					<div class="searchbox-client top-content-center">
+                        <input placeholder="Search Orders" type="text" id="search-orders" size="1" t-on-keyup="updateOrderList"/>
+                        <span class="search-clear-order"></span>
+                    </div>
+                </div>
+                <section class="full-content">
+                    <div class="client-window">
+                        <section class="subwindow list">
+                            <div class="subwindow-container">
+                                <div class="subwindow-container-fix scrollable-y">
+                                    <table class="client-list" id="client-list">
+                                        <thead>
+                                            <tr>
+                                                <th>Order Ref</th>
+                                                <th>Receipt Ref</th>
+                                                <th>Customer</th>
+                                                <th>Order Date</th>
+                                                <th>Total</th>
+                                                <th>Re-Order</th>
+                                                <th>Receipt Reprint</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="client-list-contents">
+                                        	<t t-set="Orders" t-value="props.orders" />
+                                            <t t-foreach="Orders" t-as="order" t-key="Orders[order].id">
+                                            	<tr class='order-line' t-att-data-id='Orders[order].id'>
+										            <td><t t-esc='Orders[order].name' /></td>
+										            <td><t t-esc='Orders[order].pos_reference' /></td>
+										            <td><t t-esc='Orders[order].partner_id' /></td>
+										            <td><t t-esc='Orders[order].date_order' /></td>
+										            <td>
+										            	<t t-esc='env.pos.format_currency(Orders[order].amount_total)' />
+										            </td>
+										            <td><button class="repeat-button repeat_order" t-on-click="trigger('repeat-order', Orders[order].lines)"><i class="fa fa-refresh" ></i> Re-Order</button></td>
+										            <td><button t-att-id="Orders[order].id" class="receipt-reprint-button receipt_reprint" t-on-click="trigger('reprint-receipt', Orders[order])"><i class="fa fa-print" ></i> Receipt Reprint</button></td>
+										        </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="RepeatWidgetPopup" owl="1">
+        <div class="modal-dialog" role="dialog">
+            <div class="popup popup-selection ">
+                <p class="title icon-title">Reorder Products</p>
+                <div class='selection scrollable-y touch-scrollable'>
+                    <table id = "list" cellspacing = "1px" cellpadding = "10px" text-align = "center"
+                           width="100%" style="border:1px;padding-left:1.16cm;">
+                        <thead>
+                            <tr>
+                                <td>Product</td>
+                                <td>Reorder Quantity</td>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+	                        <t t-set="lines" t-value="props.lines" />
+	                        <t t-set="i" t-value="1" />
+	                        <t t-foreach="props.lines || []" t-as="line" t-key="lines[line].product_id">
+	                        	<tr class='order-line' t-att-data-id="lines[line].product_id">
+						            <td><t t-esc="lines[line].product" /></td>
+						            <t t-set="qty" t-value="lines[line].qty" />
+						            <td><input t-att-id="'reorder-qty-' + i" t-att-data-id="lines[line].partnerid" type="text" t-att-value="qty"/></td>
+						        </tr>
+						        <t t-set="i" t-value="i+1" />
+	                        </t>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer">
+                    <div class="button cancel icon-cancel" t-on-click="cancel">
+                        Cancel
+                    </div>
+                    <div class="button confirm icon-confirm" t-on-click="trigger('repeat-order-confirm')">
+                    	Apply
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
